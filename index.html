@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Visite de Risques</title>
+  <meta name="theme-color" content="#2563eb" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" href="/icons/icon-192.png" sizes="192x192" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+
+  <!-- Chart.js pour dashboard (CDN, cache par SW après 1ère visite) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+  <!-- Loader global -->
+  <div id="loader" class="loader hidden"><div class="spinner"></div></div>
+
+  <!-- Toasts -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Écran d'auth (démo) -->
+  <div id="authScreen" class="screen active">
+    <div class="auth-card">
+      <h1>Visite de Risques</h1>
+      <p class="muted">Démo (auth locale)</p>
+      <label>Email</label>
+      <input id="authEmail" type="email" placeholder="prenom.nom@entreprise.com" />
+      <label>Mot de passe</label>
+      <input id="authPass" type="password" placeholder="••••••••" />
+      <button id="loginBtn" class="btn btn-primary w-100">Se connecter</button>
+    </div>
+  </div>
+
+  <!-- Écran principal -->
+  <div id="appScreen" class="screen">
+    <!-- Topbar -->
+    <header class="topbar">
+      <button id="menuBtn" class="icon-btn" title="Menu">☰</button>
+      <div class="topbar-title" id="screenTitle">Accueil</div>
+      <div class="topbar-actions">
+        <button id="syncBtn" class="btn btn-ghost">Sync</button>
+        <button id="logoutBtn" class="btn btn-outline">Déconnexion</button>
+      </div>
+    </header>
+
+    <!-- Side menu -->
+    <aside id="sideMenu" class="sidemenu">
+      <div class="sidemenu-header">
+        <div class="app-logo">VR</div>
+        <button id="closeMenuBtn" class="icon-btn">✕</button>
+      </div>
+      <nav class="menu-list">
+        <a href="#" data-view="home" class="active">🏠 Accueil</a>
+        <a href="#" data-view="sites">🏢 Sites</a>
+        <a href="#" data-view="visites">📝 Visites</a>
+        <a href="#" data-view="dashboard">📊 Dashboard</a>
+        <a href="#" data-view="actions">✅ Actions</a>
+      </nav>
+    </aside>
+
+    <!-- Contenu -->
+    <main class="content">
+
+      <!-- HOME -->
+      <section id="homeView" class="view active">
+        <div class="cards">
+          <div class="card stat">
+            <div class="stat-title">Sites</div>
+            <div class="stat-value" id="statSites">0</div>
+          </div>
+          <div class="card stat">
+            <div class="stat-title">Visites</div>
+            <div class="stat-value" id="statVisites">0</div>
+          </div>
+          <div class="card stat">
+            <div class="stat-title">Constats</div>
+            <div class="stat-value" id="statConstats">0</div>
+          </div>
+          <div class="card stat">
+            <div class="stat-title">NC</div>
+            <div class="stat-value" id="statNC">0</div>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <button id="addSiteBtn" class="btn btn-outline">+ Nouveau site</button>
+          <button id="newVisitBtn" class="btn btn-primary">+ Nouvelle visite</button>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>Visites récentes</h3>
+          </div>
+          <div id="recentVisitsList" class="list"></div>
+        </div>
+      </section>
+
+      <!-- SITES -->
+      <section id="sitesView" class="view">
+        <div class="toolbar">
+          <button id="addSiteBtn2" class="btn btn-primary">+ Nouveau site</button>
+        </div>
+        <div id="sitesList" class="list"></div>
+      </section>
+
+      <!-- VISITES -->
+      <section id="visitesView" class="view">
+        <div class="toolbar">
+          <button id="addVisitBtn" class="btn btn-primary">+ Nouvelle visite</button>
+        </div>
+        <div id="visitesList" class="list"></div>
+      </section>
+
+      <!-- DÉTAIL VISITE -->
+      <section id="visiteDetailView" class="view">
+        <div class="toolbar">
+          <button id="backToVisitesBtn" class="btn btn-outline">← Retour</button>
+          <div class="title-flex">
+            <h2 id="visiteDetailTitle">Visite</h2>
+          </div>
+          <div class="spacer"></div>
+          <button id="addZoneBtn" class="btn btn-ghost">+ Zone</button>
+          <button id="addConstatBtn" class="btn btn-ghost">+ Constat</button>
+          <button id="exportVisitBtn" class="btn btn-outline">Export visite</button>
+        </div>
+
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="info">Infos</button>
+          <button class="tab-btn" data-tab="zones">Zones</button>
+          <button class="tab-btn" data-tab="constats">Constats</button>
+          <button class="tab-btn" data-tab="actions">Actions</button>
+        </div>
+
+        <div class="tab-content">
+          <div id="tabInfo" class="tab-pane active">
+            <div id="visiteInfo" class="info-grid"></div>
+          </div>
+          <div id="tabZones" class="tab-pane">
+            <div id="zonesList" class="list"></div>
+          </div>
+          <div id="tabConstats" class="tab-pane">
+            <div id="constatsList" class="list"></div>
+          </div>
+          <div id="tabActions" class="tab-pane">
+            <div id="actionsList" class="list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DASHBOARD -->
+      <section id="dashboardView" class="view">
+        <div class="cards">
+          <div class="card">
+            <h3>Heatmap Probabilité × Gravité</h3>
+            <canvas id="heatmapChart"></canvas>
+          </div>
+          <div class="card">
+            <h3>Répartition par criticité</h3>
+            <canvas id="criticiteChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- ACTIONS -->
+      <section id="actionsView" class="view">
+        <div class="toolbar">
+          <select id="filterPriorite" class="select">
+            <option value="">Criticité (toutes)</option>
+            <option value="Faible">Faible</option>
+            <option value="Modéré">Modéré</option>
+            <option value="Élevé">Élevé</option>
+            <option value="Critique">Critique</option>
+            <option value="Catastrophique">Catastrophique</option>
+          </select>
+          <select id="filterStatut" class="select">
+            <option value="">Statut action (tous)</option>
+            <option value="Ouvert">Ouvert</option>
+            <option value="En cours">En cours</option>
+            <option value="Clos">Clos</option>
+          </select>
+          <button id="exportActionsBtn" class="btn btn-outline">Export actions</button>
+        </div>
+        <div id="allActionsList" class="list"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODALES : Site / Visite / Zone / Constat -->
+  <div id="modalOverlay" class="modal hidden">
+    <div class="modal-content">
+      <h2 id="modalTitle">Titre</h2>
+      <div id="modalBody"></div>
+      <div class="modal-actions">
+        <button id="modalCancelBtn" class="btn btn-outline">Annuler</button>
+        <button id="modalSaveBtn" class="btn btn-primary">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts applicatifs -->
+  <script src="/js/utils.js"></script>
+  <script src="/js/scoring.js"></script>
+  <script src="/js/db.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/export.js"></script>
+  <script src="/js/dashboard.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/app.js"></script>
+
+  <script>
+    // Enregistrement SW (scope racine)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(console.error);
+      });
+    }
+  </script>
+</body>
+</html>
