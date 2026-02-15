@@ -1,6 +1,5 @@
 {
   "name": "Visite de Risques",
-  "short_name": "Risques",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
